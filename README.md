@@ -19,7 +19,7 @@ A cada puzzle resolvido, uma parte do quarto se arruma sozinha. Se o jogador fic
 
 - **Paulo Alencar:** programação e arquitetura
 - **Maria Clara Andrade:** narrativa, textos/interações e GDD
-- **Enzo Lima:** arte e ambientação 3D
+- **Enzo Lima Cruz:** arte e ambientação 3D
 - **Natan Shinmon:** personagem, interface e testes
 
 ## Como abrir
