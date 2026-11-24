@@ -30,23 +30,31 @@ public class PainelPixel : MonoBehaviour
     {
         grupo = GetComponent<CanvasGroup>();
         if (titulo != null) tituloCompleto = titulo.text;
-        if (itens != null)
-        {
-            posItens = new Vector2[itens.Length];
-            grupoItens = new CanvasGroup[itens.Length];
-            for (int i = 0; i < itens.Length; i++)
-            {
-                if (itens[i] == null) continue;
-                posItens[i] = itens[i].anchoredPosition;
-                grupoItens[i] = itens[i].GetComponent<CanvasGroup>();
-                if (grupoItens[i] == null) grupoItens[i] = itens[i].gameObject.AddComponent<CanvasGroup>();
-            }
-        }
         FontesPixel.Nitidas();
+    }
+
+    RectTransform[] itensPreparados;
+
+    // Guarda posição e CanvasGroup de cada item. Refeito se a lista mudar (os puzzles montam a UI no Start).
+    void PrepararItens()
+    {
+        if (itens == itensPreparados && posItens != null) return;
+        itensPreparados = itens;
+        int n = itens != null ? itens.Length : 0;
+        posItens = new Vector2[n];
+        grupoItens = new CanvasGroup[n];
+        for (int i = 0; i < n; i++)
+        {
+            if (itens[i] == null) continue;
+            posItens[i] = itens[i].anchoredPosition;
+            grupoItens[i] = itens[i].GetComponent<CanvasGroup>();
+            if (grupoItens[i] == null) grupoItens[i] = itens[i].gameObject.AddComponent<CanvasGroup>();
+        }
     }
 
     void OnEnable()
     {
+        PrepararItens();
         if (rodando != null) StopCoroutine(rodando);
         rodando = StartCoroutine(Abrir());
     }
@@ -56,7 +64,7 @@ public class PainelPixel : MonoBehaviour
         transform.localScale = Vector3.one;
         if (grupo != null) grupo.alpha = 1f;
         if (titulo != null && tituloCompleto != null) titulo.text = tituloCompleto;
-        if (itens != null)
+        if (itens != null && posItens != null && itens == itensPreparados)
             for (int i = 0; i < itens.Length; i++)
             {
                 if (itens[i] == null) continue;

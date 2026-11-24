@@ -28,6 +28,8 @@ public static partial class SceneSetup
         TextosNeutrosCris();
         MontarArrumacaoEBatimentos();
         EstilizarUIPixel();
+        MontarPuzzlesV2();
+        MontarPuzzles45ECenaFinal();
         Debug.Log("Versão Cris aplicada. Salve a cena (Ctrl+S) e teste no Play.");
     }
 
@@ -310,10 +312,12 @@ public static partial class SceneSetup
         "Mover Cris: W A S D ou as setas.\n" +
         "Interagir: tecla E, perto de um objeto. Esc fecha o painel.\n" +
         "Dentro dos puzzles: clique nas opções com o mouse.\n\n" +
-        "Puzzle 1 · Mesa de tarefas: organize as tarefas por prioridade.\n" +
-        "Puzzle 2 · Quadro: encontre a condição de parada do loop.\n" +
-        "Puzzle 3 · Celular: reconfigure o firewall social.\n" +
-        "Cada puzzle resolvido arruma uma parte do quarto. Depois dos três, abra a Cortina.\n\n" +
+        "Puzzle 1 · Escrivaninha: monte a fila de prioridade de hoje.\n" +
+        "Puzzle 2 · Mural: faça o laço de pensamento terminar.\n" +
+        "Puzzle 3 · Celular: ajuste as regras do firewall.\n" +
+        "Puzzle 4 · Notebook: desfaça o deadlock.\n" +
+        "Puzzle 5 · Sacos de lixo: rode o coletor de lixo.\n" +
+        "Cada puzzle resolvido arruma uma parte do quarto. Depois dos cinco, abra a Cortina.\n\n" +
         "A Vontade é a luz em volta de Cris: sobe quando você avança e desce com erros. " +
         "Se ficar muito tempo parado, o coração acelera. Sem pressa, mas siga em frente.";
 
@@ -378,12 +382,24 @@ public static partial class SceneSetup
         if (obj == null) obj = new GameObject("ArrumacaoQuarto");
         var arr = obj.GetComponent<ArrumacaoQuarto>();
         if (arr == null) arr = obj.AddComponent<ArrumacaoQuarto>();
-        arr.grupos = new[]
-        {
-            new ArrumacaoQuarto.Grupo { nome = "Puzzle 1 · Escrivaninha" },
-            new ArrumacaoQuarto.Grupo { nome = "Puzzle 2 · Meio do quarto" },
-            new ArrumacaoQuarto.Grupo { nome = "Puzzle 3 · Cama" },
-        };
+        var p4 = Object.FindFirstObjectByType<PuzzleDeadlock>();
+        var p5 = Object.FindFirstObjectByType<PuzzleColetorLixo>();
+        bool cinco = p4 != null && p5 != null;
+        arr.grupos = cinco
+            ? new[]
+            {
+                new ArrumacaoQuarto.Grupo { nome = "Puzzle 1 · Escrivaninha" },
+                new ArrumacaoQuarto.Grupo { nome = "Puzzle 2 · Meio do quarto" },
+                new ArrumacaoQuarto.Grupo { nome = "Puzzle 3 · Cama" },
+                new ArrumacaoQuarto.Grupo { nome = "Puzzle 4 · Perto do notebook" },
+                new ArrumacaoQuarto.Grupo { nome = "Puzzle 5 · Perto dos sacos de lixo" },
+            }
+            : new[]
+            {
+                new ArrumacaoQuarto.Grupo { nome = "Puzzle 1 · Escrivaninha" },
+                new ArrumacaoQuarto.Grupo { nome = "Puzzle 2 · Meio do quarto" },
+                new ArrumacaoQuarto.Grupo { nome = "Puzzle 3 · Cama" },
+            };
         arr.sacosLixo = new List<Transform>();
         arr.pecasNinho = new List<Transform>();
         arr.lencol = null;
@@ -399,7 +415,9 @@ public static partial class SceneSetup
         Bounds bMesa, bCama;
         if (!TentarBounds(mesaVisual, out bMesa)) bMesa = new Bounds(new Vector3(-2.5f, 0.4f, -0.9f), Vector3.one);
         if (!TentarBounds(cama, out bCama)) bCama = new Bounds(new Vector3(2.8f, 0.3f, 0.85f), Vector3.one);
-        Vector3[] ancoras = { bMesa.center, (bMesa.center + bCama.center) * 0.5f, bCama.center };
+        var listaAncoras = new List<Vector3> { bMesa.center, (bMesa.center + bCama.center) * 0.5f, bCama.center };
+        if (cinco) { listaAncoras.Add(p4.transform.position); listaAncoras.Add(p5.transform.position); }
+        Vector3[] ancoras = listaAncoras.ToArray();
 
         foreach (string nomeRaiz in new[] { "Bagunca_Depressao", "Bagunca_Quarto" })
         {
@@ -418,7 +436,7 @@ public static partial class SceneSetup
 
                 int g;
                 if (t.name.StartsWith("Mesa_") || t.name.StartsWith("MesaChao_")) g = 0;
-                else if (t.name.StartsWith("Meio_")) g = 1;
+                else if (t.name.StartsWith("Meio_")) g = cinco ? MaisPertoEntre(t.position, ancoras, new[] { 1, 3, 4 }) : 1;
                 else if (t.name.StartsWith("CamaChao_") || t.name.StartsWith("Tenis_") || t.name.StartsWith("Cama_")) g = 2;
                 else g = MaisPerto(t.position, ancoras);
                 arr.grupos[g].itens.Add(t);
@@ -451,6 +469,17 @@ public static partial class SceneSetup
         string[] ficam = { "Cesto_Roupa_Suja", "Cabo_Carregador", "Mochila", "pillow", "Pillow", "bear", "Bear", "Arara", "Luz_" };
         foreach (string f in ficam) if (n.Contains(f)) return true;
         return false;
+    }
+
+    static int MaisPertoEntre(Vector3 p, Vector3[] ancoras, int[] indices)
+    {
+        int melhor = indices[0]; float menor = float.MaxValue;
+        foreach (int i in indices)
+        {
+            float d = new Vector2(p.x - ancoras[i].x, p.z - ancoras[i].z).sqrMagnitude;
+            if (d < menor) { menor = d; melhor = i; }
+        }
+        return melhor;
     }
 
     static int MaisPerto(Vector3 p, Vector3[] ancoras)

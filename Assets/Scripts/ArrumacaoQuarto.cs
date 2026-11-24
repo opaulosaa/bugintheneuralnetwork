@@ -105,7 +105,7 @@ public class ArrumacaoQuarto : MonoBehaviour
         if (somArrumar != null) fonte.PlayOneShot(somArrumar, 0.6f);
 
         partesArrumadas++;
-        StartCoroutine(VoltarCor(partesArrumadas / 3f));
+        StartCoroutine(VoltarCor(partesArrumadas / (float)Mathf.Max(1, grupos.Length)));
 
         // Do mais perto do jogador para o mais longe: parece uma onda saindo de Cris.
         var itens = new List<Transform>();

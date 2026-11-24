@@ -69,4 +69,12 @@ salvar("ui_vinheta", v)
 ok = nova(7, 6)
 for (x, y) in [(0, 3), (1, 4), (2, 5), (3, 4), (4, 3), (5, 2), (6, 1), (5, 1), (6, 0)]: px(ok, x, y, (120, 230, 150))
 salvar("ui_ok", ok)
+# Papel (post-it/cartão) em 9-slice, com sombra embaixo; a cor vem do Image.
+pa = nova(16, 16); ret(pa, 0, 0, 15, 13, (255, 255, 255)); ret(pa, 0, 0, 15, 0, (236, 236, 236))
+ret(pa, 1, 14, 15, 15, (0, 0, 0), 70); ret(pa, 15, 1, 15, 13, (210, 210, 210)); ret(pa, 0, 13, 15, 13, (205, 205, 205))
+salvar("ui_papel", pa)
+# Alfinete
+al = nova(5, 5); ret(al, 1, 0, 3, 3, (220, 50, 70)); ret(al, 0, 1, 4, 2, (220, 50, 70)); px(al, 1, 1, (255, 150, 160)); px(al, 2, 4, (60, 60, 70)); salvar("ui_alfinete", al)
+# Caixa de código (terminal)
+cc = nova(16, 16); ret(cc, 0, 0, 15, 15, CONTORNO); ret(cc, 1, 1, 14, 14, (40, 90, 80)); ret(cc, 2, 2, 13, 13, (8, 14, 16)); salvar("ui_codigo", cc)
 print("ok")

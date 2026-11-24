@@ -18,6 +18,9 @@ public class BotaoPixel : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     public Color corTexto = new Color(0.80f, 0.94f, 1f);
     public Color corTextoHover = Color.white;
     public float pixel = 4f;
+    [Tooltip("Fica com o visual de destaque mesmo sem o mouse em cima (opção escolhida).")]
+    public bool selecionado;
+    [Range(0f, 1f)] public float alphaDesativado = 0.35f;
 
     Button botao;
     RectTransform rt;
@@ -58,6 +61,7 @@ public class BotaoPixel : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     {
         bool ativo = botao == null || botao.interactable;
         bool destaque = ativo && sobre;
+        bool aceso = destaque || (ativo && selecionado);
         tremor = Mathf.Max(0f, tremor - Time.unscaledDeltaTime);
 
         // A posição base acompanha a entrada animada do PainelPixel (só ajustamos o deslocamento).
@@ -68,14 +72,14 @@ public class BotaoPixel : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
         if (fundo != null)
         {
-            if (spriteNormal != null && spriteHover != null) fundo.sprite = destaque ? spriteHover : spriteNormal;
-            Color c = fundo.color; c.a = ativo ? 1f : 0.35f; fundo.color = c;
+            if (spriteNormal != null && spriteHover != null) fundo.sprite = aceso ? spriteHover : spriteNormal;
+            Color c = fundo.color; c.a = ativo ? 1f : alphaDesativado; fundo.color = c;
         }
         if (texto != null)
         {
-            texto.color = ativo ? (destaque ? corTextoHover : corTexto) : new Color(corTexto.r, corTexto.g, corTexto.b, 0.45f);
+            texto.color = ativo ? (aceso ? corTextoHover : corTexto) : new Color(corTexto.r, corTexto.g, corTexto.b, 0.45f);
         }
         if (cursor != null)
-            cursor.enabled = destaque && Mathf.Repeat(Time.unscaledTime, 0.5f) < 0.3f;
+            cursor.enabled = (destaque && Mathf.Repeat(Time.unscaledTime, 0.5f) < 0.3f) || (selecionado && ativo);
     }
 }

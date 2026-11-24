@@ -115,7 +115,8 @@ public class TesteAutomaticoCris : MonoBehaviour
 
         var puzzles = new List<Interactable>(FindObjectsByType<Interactable>(FindObjectsSortMode.None));
         puzzles.Sort((a, b) => string.Compare(a.GetType().Name, b.GetType().Name, System.StringComparison.Ordinal));
-        Checar(puzzles.Count == 4, "4 objetos interativos na cena (encontrados: " + puzzles.Count + ")");
+        int esperados = (StoryState.Instance != null ? StoryState.Instance.totalPuzzles : 3) + 1;
+        Checar(puzzles.Count == esperados, esperados + " objetos interativos na cena (encontrados: " + puzzles.Count + ")");
 
         var pontos = new Dictionary<Interactable, Vector3>();
         foreach (var p in puzzles)
@@ -138,14 +139,13 @@ public class TesteAutomaticoCris : MonoBehaviour
             yield return Interagir(p1, pontos, "play_2_puzzle1.png");
             Checar(p1.painel != null && p1.painel.activeInHierarchy, "Puzzle 1: painel abre ao interagir");
             float v0 = gm != null ? gm.vontade : 0f;
-            var errado = System.Array.Find(p1.postIts, x => x.ordemCorreta != 0);
-            errado?.botao.onClick.Invoke();
-            Checar(gm == null || gm.vontade < v0, "Puzzle 1: clicar fora de ordem tira Vontade (" + v0 + " → " + (gm != null ? gm.vontade : 0f) + ")");
-            var ordem = new List<PuzzlePriorityQueue.PostIt>(p1.postIts);
-            ordem.Sort((a, b) => a.ordemCorreta.CompareTo(b.ordemCorreta));
-            foreach (var post in ordem) post.botao.onClick.Invoke();
-            yield return new WaitForSeconds(1.5f);
-            Checar(story != null && story.puzzle1Concluido, "Puzzle 1: concluído com a ordem certa");
+            p1.Clicar(3);   // "Ensaiar" vence antes, mas depende dos slides
+            Checar(gm == null || gm.vontade < v0, "Puzzle 1: tarefa bloqueada tira Vontade (" + v0 + " → " + (gm != null ? gm.vontade : 0f) + ")");
+            var ordem = p1.OrdemCerta();
+            Checar(!ordem.Contains(5), "Puzzle 1: a prova de Redes não entra na fila de hoje");
+            foreach (int t in ordem) p1.Clicar(t);
+            yield return new WaitForSeconds(2.8f);
+            Checar(story != null && story.puzzle1Concluido, "Puzzle 1: concluído seguindo a fila (" + string.Join(", ", ordem) + ")");
             Checar(!p1.painel.activeInHierarchy, "Puzzle 1: painel fecha sozinho");
         }
 
@@ -153,19 +153,58 @@ public class TesteAutomaticoCris : MonoBehaviour
         {
             yield return Interagir(p2, pontos, "play_3_puzzle2.png");
             Checar(p2.painel != null && p2.painel.activeInHierarchy, "Puzzle 2: painel abre ao interagir");
-            foreach (var o in p2.opcoes) if (o.correta) o.botao.onClick.Invoke();
-            yield return new WaitForSeconds(1.9f);
-            Checar(story != null && story.puzzle2Concluido, "Puzzle 2: concluído com a opção certa");
+            p2.Escolher(p2.condicaoCerta, 0);   // condição certa, corpo errado: ainda é laço infinito
+            p2.Executar();
+            yield return new WaitForSeconds(2f);
+            Checar(story == null || !story.puzzle2Concluido, "Puzzle 2: condição certa sem mudar a variável não resolve");
+            p2.Escolher(p2.condicaoCerta, p2.corpoCerto);
+            p2.Executar();
+            yield return new WaitForSeconds(3.4f);
+            Checar(story != null && story.puzzle2Concluido, "Puzzle 2: concluído com condição e corpo certos");
         }
 
         if (p3 != null)
         {
             yield return Interagir(p3, pontos, "play_4_puzzle3.png");
             Checar(p3.painel != null && p3.painel.activeInHierarchy, "Puzzle 3: painel abre ao interagir");
-            for (int i = 0; i < p3.regras.Length; i++) p3.regras[i].isOn = p3.estadoCorreto[i];
-            p3.botaoAplicar.onClick.Invoke();
-            yield return new WaitForSeconds(1.9f);
-            Checar(story != null && story.puzzle3Concluido, "Puzzle 3: concluído com as regras certas");
+            p3.AlternarAcao(p3.PosicaoDe("contatos"));        // contatos: PERMITIR
+            p3.Aplicar();
+            Checar(story == null || !story.puzzle3Concluido, "Puzzle 3: só liberar os contatos deixa passar a corrente e o golpe");
+            while (p3.PosicaoDe("correntes") > p3.PosicaoDe("contatos")) p3.Mover(p3.PosicaoDe("correntes"), -1);
+            p3.AlternarAcao(p3.PosicaoDe("desconhecidos"));   // desconhecidos: BARRAR
+            p3.Aplicar();
+            yield return new WaitForSeconds(3f);
+            Checar(story != null && story.puzzle3Concluido, "Puzzle 3: concluído com as regras na ordem certa");
+        }
+
+        var p4 = FindFirstObjectByType<PuzzleDeadlock>();
+        if (p4 != null)
+        {
+            yield return Interagir(p4, pontos, "play_4b_puzzle4.png");
+            Checar(p4.painel != null && p4.painel.activeInHierarchy, "Puzzle 4: painel abre ao interagir");
+            p4.Cortar(4);   // espera irreal, mas só de um dos ciclos
+            p4.Executar();
+            yield return new WaitForSeconds(1.6f);
+            Checar(story == null || !story.Concluido(4), "Puzzle 4: cortar só a espera do descanso ainda deixa um ciclo");
+            p4.Cortar(4); p4.Cortar(0);   // devolve e corta a espera que está nos dois ciclos
+            p4.Executar();
+            yield return new WaitForSeconds(5f);
+            Checar(story != null && story.Concluido(4), "Puzzle 4: deadlock desfeito");
+        }
+
+        var p5 = FindFirstObjectByType<PuzzleColetorLixo>();
+        if (p5 != null)
+        {
+            yield return Interagir(p5, pontos, "play_4c_puzzle5.png");
+            Checar(p5.painel != null && p5.painel.activeInHierarchy, "Puzzle 5: painel abre ao interagir");
+            p5.Varrer();   // nada marcado: apagaria coisas vivas
+            Checar(story == null || !story.Concluido(5), "Puzzle 5: varrer sem marcar é recusado");
+            var vivos = p5.Alcancaveis();
+            for (int volta = 0; volta < 4; volta++)
+                for (int i = 1; i < vivos.Length; i++) if (vivos[i]) p5.Marcar(i);
+            p5.Varrer();
+            yield return new WaitForSeconds(5f);
+            Checar(story != null && story.Concluido(5), "Puzzle 5: coletor rodou e liberou só o lixo");
         }
 
         var hud = FindFirstObjectByType<PuzzleProgressHUD>();

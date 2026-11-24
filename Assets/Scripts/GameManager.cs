@@ -48,6 +48,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Dica gentil")]
     public Text textoDica;
+    public string[] lugaresDosPuzzles = { "a escrivaninha", "o mural de cortiça", "o celular na cama", "o notebook", "os sacos de lixo" };
     public float segundosParaDica = 16f;
 
     [Header("Referências visuais")]
@@ -242,11 +243,10 @@ public class GameManager : MonoBehaviour
     string TextoDaDica()
     {
         var s = StoryState.Instance;
-        string alvo;
-        if (s == null || !s.puzzle1Concluido) alvo = "a escrivaninha";
-        else if (!s.puzzle2Concluido) alvo = "o mural de cortiça";
-        else if (!s.puzzle3Concluido) alvo = "o celular na cama";
-        else alvo = "a cortina";
+        string alvo = "a cortina";
+        int total = s != null ? s.totalPuzzles : lugaresDosPuzzles.Length;
+        for (int i = 1; i <= total && i <= lugaresDosPuzzles.Length; i++)
+            if (s == null || !s.Concluido(i)) { alvo = lugaresDosPuzzles[i - 1]; break; }
         return "Respire. Um passo de cada vez. Que tal " + alvo + "?";
     }
 

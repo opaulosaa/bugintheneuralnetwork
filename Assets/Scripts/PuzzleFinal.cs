@@ -28,6 +28,9 @@ public class PuzzleFinal : Interactable
     public float intensidadeJanelaFinal = -1f;
     public float duracaoAbertura = 2.5f;
 
+    [Header("Cena final pixelada (Versão Cris > 8)")]
+    public CenaFinalPixel cenaFinal;
+
     private bool concluido = false;
 
     void Start()
@@ -64,11 +67,14 @@ public class PuzzleFinal : Interactable
 
         if (luzAmbiente != null) luzAmbiente.color = corFinal;
         if (textoMensagemFinal != null)
-            textoMensagemFinal.text = "Ainda é difícil. Mas hoje Cris pediu ajuda.\n\nSe você ou alguém que você conhece precisa de apoio, o CVV atende de graça, 24h, pelo 188 ou cvv.org.br.";
+            textoMensagemFinal.text = "Ainda é difícil. Mas hoje Cris deu o primeiro passo: abriu a cortina e respondeu a Bia.";
         if (cortinaEsquerda != null || cortinaDireita != null)
             StartCoroutine(SequenciaFinal());
         else if (painelFinal != null)
+        {
             painelFinal.SetActive(true);
+            if (cenaFinal != null) cenaFinal.Preparar(painelFinal);
+        }
     }
 
     System.Collections.IEnumerator SequenciaFinal()
@@ -107,6 +113,7 @@ public class PuzzleFinal : Interactable
 
         yield return new WaitForSeconds(1.2f);
         if (painelFinal != null) painelFinal.SetActive(true);
+        if (cenaFinal != null && painelFinal != null) cenaFinal.Preparar(painelFinal);
     }
 
     void FecharBloqueado()

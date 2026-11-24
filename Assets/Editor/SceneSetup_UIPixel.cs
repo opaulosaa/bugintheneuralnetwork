@@ -29,7 +29,7 @@ public static partial class SceneSetup
         Transform c = canvasObj.transform;
 
         int n = 0;
-        foreach (string nome in new[] { "Painel_Puzzle1", "Painel_Puzzle2", "Painel_Puzzle3", "Painel_Bloqueado", "Painel_Final" })
+        foreach (string nome in new[] { "Painel_Puzzle1", "Painel_Puzzle2", "Painel_Puzzle3", "Painel_Puzzle4", "Painel_Puzzle5", "Painel_Bloqueado", "Painel_Final" })
         {
             Transform p = c.Find(nome);
             if (p == null) continue;
@@ -339,7 +339,7 @@ public static partial class SceneSetup
 
     static void LayoutCaixas(Transform c)
     {
-        for (int i = 1; i <= 3; i++)
+        for (int i = 1; i <= 5; i++)
         {
             Transform p = c.Find("Painel_Puzzle" + i);
             if (p == null) continue;
@@ -496,7 +496,7 @@ public class ImportadorUIPixel : AssetPostprocessor
         ti.alphaIsTransparency = true;
         ti.spritePixelsPerUnit = 100f;
         ti.wrapMode = nome == "ui_scanline" ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
-        if (nome.StartsWith("ui_painel") || nome.StartsWith("ui_botao") || nome == "ui_etiqueta")
+        if (nome.StartsWith("ui_painel") || nome.StartsWith("ui_botao") || nome == "ui_etiqueta" || nome == "ui_papel" || nome == "ui_codigo")
             ti.spriteBorder = new Vector4(5f, 5f, 5f, 5f);
     }
 
