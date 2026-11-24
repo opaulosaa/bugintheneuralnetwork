@@ -13,7 +13,7 @@ Cris estuda Ciência da Computação e tem uma apresentação importante amanhã
 | 3 | Celular na cama | Firewall e regras de filtragem |
 | Final | Cortina | Abrir a cortina e pedir ajuda |
 
-A cada puzzle resolvido, uma parte do quarto se arruma sozinha. Se o jogador ficar parado muito tempo, ouve um coração que acelera aos poucos. O jogo termina indicando o CVV (188, cvv.org.br).
+A cada puzzle resolvido, uma parte do quarto se arruma sozinha. Se o jogador ficar parado muito tempo, ouve um coração que acelera aos poucos.
 
 ## Equipe
 
